@@ -19,10 +19,10 @@ app.use(helmet());
 
 // CORS
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
+  'https://punjab-jobs-hub.vercel.app',
   'http://localhost:3000',
   'http://localhost:5173',
-].filter(Boolean);
+];
 
 app.use(
   cors({
