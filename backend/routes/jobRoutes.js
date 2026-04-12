@@ -8,7 +8,7 @@ const { jobValidation } = require('../middleware/validation');
 router.get('/filter', filterJobs);
 router.get('/', getAllJobs);
 router.get('/:id', getJobById);
-router.post('/', protect, jobValidation, createJob);
+router.post('/', createJob);
 router.put('/:id', protect, updateJob);
 router.delete('/:id', protect, deleteJob);
 
