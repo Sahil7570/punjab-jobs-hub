@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -51,6 +53,12 @@ const Navbar = () => {
               `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-saffron-50 text-saffron-600' : 'text-slate-600 hover:bg-stone-100'}`}>
               Apply Now
             </NavLink>
+            <Link
+              to={isLoggedIn ? '/admin/dashboard' : '/admin'}
+              className="ml-1 inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+            >
+              {isLoggedIn ? 'Admin Panel' : 'Admin Login'}
+            </Link>
           </nav>
         </div>
       </div>
