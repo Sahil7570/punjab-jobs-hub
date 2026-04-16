@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '../utils/api';
+import { ADMIN_TOKEN_KEY } from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -8,11 +9,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
     if (token) {
       authApi.me()
         .then((res) => setAdmin(res.admin))
-        .catch(() => localStorage.removeItem('admin_token'))
+        .catch(() => localStorage.removeItem(ADMIN_TOKEN_KEY))
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -21,13 +22,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await authApi.login({ email, password });
-    localStorage.setItem('admin_token', res.token);
+    localStorage.setItem(ADMIN_TOKEN_KEY, res.token);
     setAdmin(res.admin);
     return res;
   };
 
   const logout = () => {
-    localStorage.removeItem('admin_token');
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
     setAdmin(null);
   };
 

@@ -3,8 +3,13 @@ const Subscriber = require('../models/Subscriber');
 const { sendNewJobAlert } = require('../utils/email');
 
 // ─── Build Filter Query ──────────────────────────────────
-const buildFilterQuery = (query) => {
-  const filter = { isActive: true };
+const buildFilterQuery = (query, options = {}) => {
+  const { includeInactive = false } = options;
+  const filter = {};
+
+  if (!includeInactive) {
+    filter.isActive = true;
+  }
 
   if (query.gender && query.gender !== 'all') {
     filter['eligibility.gender'] = { $in: [query.gender, 'Both'] };
@@ -38,6 +43,7 @@ const getAllJobs = async (req, res) => {
     const limit = Math.min(50, parseInt(req.query.limit) || 12);
     const skip = (page - 1) * limit;
     const { search } = req.query;
+    const isAdminRequest = Boolean(req.admin) && req.query.scope === 'admin';
 
     let query;
     let sort = { createdAt: -1 };
@@ -45,7 +51,7 @@ const getAllJobs = async (req, res) => {
     if (search && search.trim()) {
       // Full-text search
       query = {
-        ...buildFilterQuery(req.query),
+        ...buildFilterQuery(req.query, { includeInactive: isAdminRequest }),
         $text: { $search: search.trim() },
       };
       sort = { score: { $meta: 'textScore' }, createdAt: -1 };
@@ -68,7 +74,7 @@ const getAllJobs = async (req, res) => {
     }
 
     // Normal filter query
-    query = buildFilterQuery(req.query);
+    query = buildFilterQuery(req.query, { includeInactive: isAdminRequest });
     const [jobs, total] = await Promise.all([
       Job.find(query).sort(sort).skip(skip).limit(limit).lean(),
       Job.countDocuments(query),
@@ -88,11 +94,18 @@ const getAllJobs = async (req, res) => {
 // GET /api/jobs/:id
 const getJobById = async (req, res) => {
   try {
-    const job = await Job.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { views: 1 } },
-      { new: true }
-    ).lean();
+    const isAdminRequest = Boolean(req.admin) && req.query.scope === 'admin';
+    let job;
+
+    if (isAdminRequest) {
+      job = await Job.findById(req.params.id).lean();
+    } else {
+      job = await Job.findByIdAndUpdate(
+        req.params.id,
+        { $inc: { views: 1 } },
+        { new: true }
+      ).lean();
+    }
 
     if (!job) {
       return res.status(404).json({ success: false, message: 'Job not found' });

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { getDashboardStats } = require('../controllers/adminController');
-const { protect } = require('../middleware/auth');
+const { protect, authorizeRoles } = require('../middleware/auth');
 
-router.get('/stats', protect, getDashboardStats);
+router.get('/stats', protect, authorizeRoles('admin', 'superadmin'), getDashboardStats);
 
 module.exports = router;
